@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CatalogService implements CatalogUseCase {
+class CatalogService implements CatalogUseCase {
 
     private final CatalogRepository catalogRepository;
 
@@ -24,35 +24,49 @@ public class CatalogService implements CatalogUseCase {
     @Override
     public List<Book> findByTitle(String title) {
         return catalogRepository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().startsWith(title))
-                .collect(Collectors.toList());
+                                .stream()
+                                .filter(book -> book.getTitle().startsWith(title))
+                                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<Book> findOneByTitle(String title) {
+        return catalogRepository.findAll()
+                                .stream()
+                                .filter(book -> book.getTitle().startsWith(title))
+                                .findFirst();
     }
 
     @Override
     public Optional<Book> findOneByTitleAndAuthor(String title, String author) {
-        return  catalogRepository.findAll()
-                .stream()
-                .filter(book -> book.getTitle().startsWith(title))
-                .filter(book -> book.getAuthor().startsWith(author))
-                .findFirst();
+        return catalogRepository.findAll()
+                                .stream()
+                                .filter(book -> book.getTitle().startsWith(title))
+                                .filter(book -> book.getAuthor().startsWith(author))
+                                .findFirst();
     }
 
     @Override
     public void addBook(CreateBookCommand command) {
-        Book book = new Book(command.getTitle(), command.getAuthor(), command.getYear());
+        Book book = command.toBook();
         catalogRepository.save(book);
     }
 
     @Override
     public UpdateBookResponse updateBook(UpdateBookCommand command) {
-        catalogRepository.findById(command.getId());
-        return null;
-
+        return catalogRepository.findById(command.getId())
+                                .map(book -> {
+                                    Book updateBook = command.updateFields(book);
+                                    catalogRepository.save(updateBook);
+                                    return UpdateBookResponse.SUCCESS;
+                                })
+                                .orElseGet(() -> new UpdateBookResponse(false, List.of("Book not found with id: " + command.getId())));
     }
 
     @Override
     public void removeById(Long id) {
-
+        catalogRepository.removeById(id);
     }
+
+
 }
