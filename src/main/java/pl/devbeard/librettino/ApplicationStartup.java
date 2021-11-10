@@ -105,7 +105,8 @@ public class ApplicationStartup implements CommandLineRunner {
                            .id(book.getId())
                            .title("Angel of Storms: Book Two of Millennium's Rule")
                            .build();
-                   catalog.updateBook(command);
+                   UpdateBookResponse response = catalog.updateBook(command);
+                   System.out.println("Updating book result: " + response.isSuccess());
                });
     }
 }
