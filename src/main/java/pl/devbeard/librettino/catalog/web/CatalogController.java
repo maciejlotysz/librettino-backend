@@ -5,11 +5,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.CreateBookCommand;
+import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.UpdateBookCommand;
+import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.UpdateBookResponse;
 import pl.devbeard.librettino.catalog.domain.Book;
 
+import javax.validation.Valid;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
@@ -47,9 +54,19 @@ public class CatalogController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Void> addBook(@RequestBody RestCreateBokCommand command) {
-        Book book = catalog.addBook(command.toCommand());
+    public ResponseEntity<Void> addBook(@Valid @RequestBody CatalogController.RestBokCommand command) {
+        Book book = catalog.addBook(command.toCreateCommand());
         return ResponseEntity.created(createdBookUri(book)).build();
+    }
+
+    @PutMapping("/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateBook(@PathVariable Long id, @RequestBody RestBokCommand command) {
+        UpdateBookResponse response = catalog.updateBook(command.toUpdateCommand(id));
+        if (!response.isSuccess()) {
+            String message = String.join(", " + response.getErrors());
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -63,14 +80,27 @@ public class CatalogController {
     }
 
     @Data
-    private static class RestCreateBokCommand {
+    private static class RestBokCommand {
+
+        @NotNull
         private String title;
+
+        @NotBlank
         private String author;
+
+        @NotNull
         private Integer year;
+
+        @NotNull
+        @DecimalMin("0.00")
         private BigDecimal price;
 
-        CreateBookCommand toCommand() {
+        CreateBookCommand toCreateCommand() {
             return new CreateBookCommand(title, author, year, price);
+        }
+
+        UpdateBookCommand toUpdateCommand(Long id) {
+            return new UpdateBookCommand(id, title, author, year, price);
         }
     }
 }
