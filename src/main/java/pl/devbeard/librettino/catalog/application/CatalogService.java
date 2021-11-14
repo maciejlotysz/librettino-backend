@@ -5,6 +5,9 @@ import org.springframework.stereotype.Service;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase;
 import pl.devbeard.librettino.catalog.domain.Book;
 import pl.devbeard.librettino.catalog.domain.CatalogRepository;
+import pl.devbeard.librettino.upload.application.port.UploadUseCase;
+import pl.devbeard.librettino.upload.application.port.UploadUseCase.SaveUploadCommand;
+import pl.devbeard.librettino.upload.domain.Upload;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +18,7 @@ import java.util.stream.Collectors;
 class CatalogService implements CatalogUseCase {
 
     private final CatalogRepository catalogRepository;
+    private final UploadUseCase upload;
 
     @Override
     public List<Book> findAll() {
@@ -90,5 +94,25 @@ class CatalogService implements CatalogUseCase {
         catalogRepository.removeById(id);
     }
 
+    @Override
+    public void updateBookCover(UpdateBookCoverCommand command) {
+        catalogRepository.findById(command.getId())
+                .ifPresent(book -> {
+                    Upload savedUpload = upload.saveUpload(new SaveUploadCommand(command.getFilename(), command.getFile(), command.getContentType()));
+                    book.setCoverId(savedUpload.getId());
+                    catalogRepository.save(book);
+                });
+    }
 
+    @Override
+    public void removeBookCover(Long id) {
+        catalogRepository.findById(id)
+                .ifPresent(book -> {
+                    if (book.getCoverId() != null) {
+                        upload.removeById(book.getCoverId());
+                        book.setCoverId(null);
+                        catalogRepository.save(book);
+                    }
+                });
+    }
 }
