@@ -58,7 +58,7 @@ public class CatalogController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Void> addBook(@Valid @RequestBody CatalogController.RestBokCommand command) {
+    public ResponseEntity<Void> addBook(@Valid @RequestBody RestBokCommand command) {
         Book book = catalog.addBook(command.toCreateCommand());
         return ResponseEntity.created(createdBookUri(book)).build();
     }
