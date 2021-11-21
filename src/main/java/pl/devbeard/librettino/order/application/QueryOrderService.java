@@ -2,8 +2,8 @@ package pl.devbeard.librettino.order.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pl.devbeard.librettino.catalog.db.BookJpaRepository;
 import pl.devbeard.librettino.catalog.domain.Book;
-import pl.devbeard.librettino.catalog.domain.CatalogRepository;
 import pl.devbeard.librettino.order.application.port.QueryOrderUseCase;
 import pl.devbeard.librettino.order.domain.Order;
 import pl.devbeard.librettino.order.domain.OrderItem;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 class QueryOrderService implements QueryOrderUseCase {
 
     private final OrderRepository repository;
-    private final CatalogRepository catalogRepository;
+    private final BookJpaRepository catalogRepository;
 
     @Override
     public List<RichOrder> findAll() {
