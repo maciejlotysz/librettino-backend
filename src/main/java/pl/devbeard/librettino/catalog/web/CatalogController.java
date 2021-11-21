@@ -15,6 +15,7 @@ import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.UpdateBook
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.UpdateBookCoverCommand;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.UpdateBookResponse;
 import pl.devbeard.librettino.catalog.domain.Book;
+import pl.devbeard.librettino.order.web.CreatedURI;
 
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
@@ -97,7 +98,7 @@ public class CatalogController {
     }
 
     private URI createdBookUri(Book book) {
-        return ServletUriComponentsBuilder.fromCurrentRequestUri().path("/" + book.getId().toString()).build().toUri();
+        return new CreatedURI("/" + book.getId().toString()).uri();
     }
 
     @Data

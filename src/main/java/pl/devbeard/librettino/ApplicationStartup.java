@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.CreateBookCommand;
 import pl.devbeard.librettino.catalog.domain.Book;
-import pl.devbeard.librettino.order.application.port.PlaceOrderUseCase;
-import pl.devbeard.librettino.order.application.port.PlaceOrderUseCase.PlaceOrderCommand;
+import pl.devbeard.librettino.order.application.port.ManipulateOrderUseCase;
+import pl.devbeard.librettino.order.application.port.ManipulateOrderUseCase.PlaceOrderCommand;
 import pl.devbeard.librettino.order.application.port.QueryOrderUseCase;
 import pl.devbeard.librettino.order.domain.OrderItem;
 import pl.devbeard.librettino.order.domain.Recipient;
@@ -21,14 +21,14 @@ import static pl.devbeard.librettino.catalog.application.port.CatalogUseCase.*;
 public class ApplicationStartup implements CommandLineRunner {
 
     private final CatalogUseCase catalog;
-    private PlaceOrderUseCase placeOrderUseCase;
+    private ManipulateOrderUseCase placeOrderUseCase;
     private QueryOrderUseCase queryOrderUseCase;
     private final String title;
     private final Long limit;
 
     public ApplicationStartup(
             CatalogUseCase catalog,
-            PlaceOrderUseCase placeOrderUseCase,
+            ManipulateOrderUseCase placeOrderUseCase,
             QueryOrderUseCase queryOrderUseCase,
             @Value("${book.title}") String title,
             @Value("${book.limit}") Long limit) {
@@ -65,17 +65,19 @@ public class ApplicationStartup implements CommandLineRunner {
         PlaceOrderCommand command = PlaceOrderCommand
                 .builder()
                 .recipient(recipient)
-                .item(new OrderItem(lotr1, 20))
-                .item(new OrderItem(lotr2, 15))
+                .item(new OrderItem(lotr1.getId(),20))
+                .item(new OrderItem(lotr2.getId(), 15))
                 .build();
 
-        PlaceOrderUseCase.PlaceOrderResponse response = placeOrderUseCase.placeOrder(command);
-        System.out.println("Created ORDER with id: " + response.getOrderId());
+        ManipulateOrderUseCase.PlaceOrderResponse response = placeOrderUseCase.placeOrder(command);
+        String result = response.handle(
+                orderId -> "Created ORDER with id: " + orderId,
+                error -> "Failed to create order: " + error
+        );
+        System.out.println(result);
 
         queryOrderUseCase.findAll()
-                .forEach( order -> {
-                    System.out.println("GOT ORDER WITH TOTAL PRICE: " + order.totalPrice() + " DETAILS: " + order);
-                });
+                .forEach(order -> System.out.println("GOT ORDER WITH TOTAL PRICE: " + order.totalPrice() + " DETAILS: " + order));
     }
 
     private void searchCatalog() {

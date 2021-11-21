@@ -6,6 +6,6 @@ import pl.devbeard.librettino.catalog.domain.Book;
 @Value
 public class OrderItem {
 
-    Book book;
+    Long bookId;
     int quantity;
 }
