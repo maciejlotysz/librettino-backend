@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 import pl.devbeard.librettino.catalog.db.BookJpaRepository;
 import pl.devbeard.librettino.catalog.domain.Book;
 import pl.devbeard.librettino.order.application.port.QueryOrderUseCase;
+import pl.devbeard.librettino.order.db.OrderJpaRepository;
 import pl.devbeard.librettino.order.domain.Order;
 import pl.devbeard.librettino.order.domain.OrderItem;
-import pl.devbeard.librettino.order.domain.OrderRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 class QueryOrderService implements QueryOrderUseCase {
 
-    private final OrderRepository repository;
+    private final OrderJpaRepository repository;
     private final BookJpaRepository catalogRepository;
 
     @Override

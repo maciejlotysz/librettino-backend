@@ -10,16 +10,16 @@ public interface UploadUseCase {
 
     Upload saveUpload(SaveUploadCommand command);
 
-    Optional<Upload> getById(String id);
+    Optional<Upload> getById(Long id);
 
-    void removeById(String coverId);
+    void removeById(Long coverId);
 
     @Value
     @AllArgsConstructor
     class SaveUploadCommand {
         String filename;
-        byte[] file;
         String contentType;
+        byte[] file;
     }
 
 

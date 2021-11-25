@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.CreateBookCommand;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.UpdateBookCommand;
@@ -19,13 +18,14 @@ import pl.devbeard.librettino.order.web.CreatedURI;
 
 import javax.validation.Valid;
 import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RequestMapping("/catalog")
 @RequiredArgsConstructor
@@ -70,7 +70,7 @@ public class CatalogController {
         UpdateBookResponse response = catalog.updateBook(command.toUpdateCommand(id));
         if (!response.isSuccess()) {
             String message = String.join(", " + response.getErrors());
-            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
         }
     }
 
@@ -107,8 +107,8 @@ public class CatalogController {
         @NotNull
         private String title;
 
-        @NotBlank
-        private String author;
+        @NotEmpty
+        private Set<Long> authors;
 
         @NotNull
         private Integer year;
@@ -118,11 +118,11 @@ public class CatalogController {
         private BigDecimal price;
 
         CreateBookCommand toCreateCommand() {
-            return new CreateBookCommand(title, author, year, price);
+            return new CreateBookCommand(title, authors, year, price);
         }
 
         UpdateBookCommand toUpdateCommand(Long id) {
-            return new UpdateBookCommand(id, title, author, year, price);
+            return new UpdateBookCommand(id, title, authors, year, price);
         }
     }
 }

@@ -3,15 +3,15 @@ package pl.devbeard.librettino.order.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.devbeard.librettino.order.application.port.ManipulateOrderUseCase;
+import pl.devbeard.librettino.order.db.OrderJpaRepository;
 import pl.devbeard.librettino.order.domain.Order;
-import pl.devbeard.librettino.order.domain.OrderRepository;
 import pl.devbeard.librettino.order.domain.OrderStatus;
 
 @Service
 @RequiredArgsConstructor
 class ManipulateOrderService implements ManipulateOrderUseCase {
 
-    private final OrderRepository repository;
+    private final OrderJpaRepository repository;
 
     @Override
     public PlaceOrderResponse placeOrder(PlaceOrderCommand command) {

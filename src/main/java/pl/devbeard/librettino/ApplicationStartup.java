@@ -1,10 +1,12 @@
 package pl.devbeard.librettino;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase.CreateBookCommand;
+import pl.devbeard.librettino.catalog.db.AuthorJpaRepository;
+import pl.devbeard.librettino.catalog.domain.Author;
 import pl.devbeard.librettino.catalog.domain.Book;
 import pl.devbeard.librettino.order.application.port.ManipulateOrderUseCase;
 import pl.devbeard.librettino.order.application.port.ManipulateOrderUseCase.PlaceOrderCommand;
@@ -13,43 +15,27 @@ import pl.devbeard.librettino.order.domain.OrderItem;
 import pl.devbeard.librettino.order.domain.Recipient;
 
 import java.math.BigDecimal;
-import java.util.List;
-
-import static pl.devbeard.librettino.catalog.application.port.CatalogUseCase.*;
+import java.util.Set;
 
 @Component
+@RequiredArgsConstructor
 public class ApplicationStartup implements CommandLineRunner {
 
     private final CatalogUseCase catalog;
-    private ManipulateOrderUseCase placeOrderUseCase;
-    private QueryOrderUseCase queryOrderUseCase;
-    private final String title;
-    private final Long limit;
-
-    public ApplicationStartup(
-            CatalogUseCase catalog,
-            ManipulateOrderUseCase placeOrderUseCase,
-            QueryOrderUseCase queryOrderUseCase,
-            @Value("${book.title}") String title,
-            @Value("${book.limit}") Long limit) {
-        this.catalog = catalog;
-        this.placeOrderUseCase = placeOrderUseCase;
-        this.queryOrderUseCase = queryOrderUseCase;
-        this.title = title;
-        this.limit = limit;
-    }
+    private final ManipulateOrderUseCase placeOrderUseCase;
+    private final QueryOrderUseCase queryOrderUseCase;
+    private final AuthorJpaRepository authorRepository;
 
     @Override
     public void run(String... args) {
         initData();
-        searchCatalog();
         placeOrder();
     }
 
     private void placeOrder() {
-        Book lotr1 = catalog.findOneByTitle("Lord of the Rings: The Fellowship of the Ring")
+        Book effectiveJava = catalog.findOneByTitle("effective Java")
                             .orElseThrow(() -> new IllegalStateException("Cannot find a book"));
-        Book lotr2 = catalog.findOneByTitle("Lord of the Rings: The Two Towers")
+        Book javaPuzzlers = catalog.findOneByTitle("java Puzzlers")
                             .orElseThrow(() -> new IllegalStateException("Cannot find a book"));
 
         Recipient recipient = Recipient
@@ -65,8 +51,8 @@ public class ApplicationStartup implements CommandLineRunner {
         PlaceOrderCommand command = PlaceOrderCommand
                 .builder()
                 .recipient(recipient)
-                .item(new OrderItem(lotr1.getId(),20))
-                .item(new OrderItem(lotr2.getId(), 15))
+                .item(new OrderItem(effectiveJava.getId(),20))
+                .item(new OrderItem(javaPuzzlers.getId(), 15))
                 .build();
 
         ManipulateOrderUseCase.PlaceOrderResponse response = placeOrderUseCase.placeOrder(command);
@@ -80,35 +66,27 @@ public class ApplicationStartup implements CommandLineRunner {
                 .forEach(order -> System.out.println("GOT ORDER WITH TOTAL PRICE: " + order.totalPrice() + " DETAILS: " + order));
     }
 
-    private void searchCatalog() {
-        findByTitle();
-        findAndUpdate();
-        findByTitle();
-    }
-
     private void initData() {
-        catalog.addBook(new CreateBookCommand("Lord of the Rings: The Fellowship of the Ring", "J.R.R. Tolkien", 1952,new BigDecimal("59.90")));
-        catalog.addBook(new CreateBookCommand("Lord of the Rings: The Two Towers", "J.R.R. Tolkien", 1954, new BigDecimal("63.90")));
-        catalog.addBook(new CreateBookCommand("The Left Hand of God", "Paul Hoffman", 2010, new BigDecimal("49.90")));
-        catalog.addBook(new CreateBookCommand("Angel of Storms", "Trudi Canavan", 2015, new BigDecimal("39.90")));
+        Author joshua = new Author("Joshua", "Bloch");
+        Author neal = new Author("Neal", "Gafter");
+        authorRepository.save(joshua);
+        authorRepository.save(neal);
+
+        CreateBookCommand effectiveJava = new CreateBookCommand(
+                "Effective Java",
+                Set.of(joshua.getId()),
+                2005,
+                new BigDecimal("79.99")
+        );
+        CreateBookCommand javaPuzzlers = new CreateBookCommand(
+                "Java Puzzlers",
+                Set.of(joshua.getId(), neal.getId()),
+                2018,
+                new BigDecimal("99.99")
+        );
+        catalog.addBook(effectiveJava);
+        catalog.addBook(javaPuzzlers);
     }
 
-    private void findByTitle() {
-        List<Book> books = catalog.findByTitle(title);
-        books.forEach(System.out::println);
-    }
 
-    private void findAndUpdate() {
-        System.out.println("Book updating....");
-        catalog.findOneByTitleAndAuthor("Angel of Storms", "Trudi Canavan")
-               .ifPresent(book -> {
-                   UpdateBookCommand command = UpdateBookCommand
-                           .builder()
-                           .id(book.getId())
-                           .title("Angel of Storms: Book Two of Millennium's Rule")
-                           .build();
-                   UpdateBookResponse response = catalog.updateBook(command);
-                   System.out.println("Updating book result: " + response.isSuccess());
-               });
-    }
 }

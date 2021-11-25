@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.devbeard.librettino.upload.application.port.UploadUseCase;
 
-import java.time.LocalDateTime;
-
 @RestController
 @RequestMapping("/uploads")
 @RequiredArgsConstructor
@@ -24,14 +22,13 @@ public class UploadController {
     private final UploadUseCase upload;
 
     @GetMapping("/{id}")
-    public ResponseEntity<UploadResponse> getUpload(@PathVariable String id) {
+    public ResponseEntity<UploadResponse> getUpload(@PathVariable Long id) {
         return upload.getById(id)
                 .map(file -> {
                     UploadResponse response = new UploadResponse(
                             file.getId(),
                             file.getContentType(),
-                            file.getFilename(),
-                            file.getCreatedAt()
+                            file.getFilename()
                     );
                     return ResponseEntity.ok(response);
                 })
@@ -39,7 +36,7 @@ public class UploadController {
     }
 
     @GetMapping("/{id}/file")
-    public ResponseEntity<Resource> getUploadFile(@PathVariable String id) {
+    public ResponseEntity<Resource> getUploadFile(@PathVariable Long id) {
         return upload.getById(id)
                      .map(file -> {
                          String contentDisposition = "attachtments; filename=\"" + file.getFilename() + "\"";
@@ -56,9 +53,8 @@ public class UploadController {
     @Value
     @AllArgsConstructor
     static class UploadResponse {
-        String id;
+        Long id;
         String contentType;
         String filename;
-        LocalDateTime createdAt;
     }
 }
