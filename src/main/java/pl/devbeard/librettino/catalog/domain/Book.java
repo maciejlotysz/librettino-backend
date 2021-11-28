@@ -5,10 +5,12 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import pl.devbeard.librettino.jpa.BaseEntity;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @RequiredArgsConstructor
@@ -17,11 +19,7 @@ import java.util.Set;
 @Setter
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-public class Book {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Book extends BaseEntity {
 
     private String title;
 
@@ -30,7 +28,7 @@ public class Book {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable
     @JsonIgnoreProperties("books")
-    private Set<Author> authors;
+    private Set<Author> authors = new HashSet<>();
 
     private Integer year;
 
@@ -48,5 +46,20 @@ public class Book {
         this.title = title;
         this.year = year;
         this.price = price;
+    }
+
+    public void addAuthor(Author author) {
+        authors.add(author);
+        author.getBooks().add(this);
+    }
+
+    public void removeAuthor(Author author) {
+        authors.remove(author);
+        author.getBooks().remove(this);
+    }
+
+    public void removeAuthors() {
+        authors.forEach(author -> author.getBooks().remove(this));
+        authors.clear();
     }
 }
