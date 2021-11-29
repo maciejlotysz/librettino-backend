@@ -2,6 +2,7 @@ package pl.devbeard.librettino.catalog.application;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.devbeard.librettino.catalog.application.port.CatalogUseCase;
 import pl.devbeard.librettino.catalog.db.AuthorJpaRepository;
 import pl.devbeard.librettino.catalog.db.BookJpaRepository;
@@ -60,6 +61,7 @@ class CatalogService implements CatalogUseCase {
     }
 
     @Override
+    @Transactional
     public Book addBook(CreateBookCommand command) {
         Book book = toBook(command);
         return repository.save(book);

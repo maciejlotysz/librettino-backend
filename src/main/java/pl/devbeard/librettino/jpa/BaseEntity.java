@@ -4,16 +4,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import java.util.UUID;
 
 @Getter
 @Setter
 @MappedSuperclass
-@EqualsAndHashCode
+@EqualsAndHashCode(of = "uuid")
 abstract public class BaseEntity {
 
     @Id
@@ -21,4 +18,7 @@ abstract public class BaseEntity {
     private Long id;
 
     private String uuid = UUID.randomUUID().toString();
+
+    @Version
+    private long version;
 }
